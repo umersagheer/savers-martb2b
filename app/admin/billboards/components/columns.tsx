@@ -1,6 +1,5 @@
 "use client";
 
-import ViewModal from "@/components/admin/view-modal";
 import { VerticalDotsIcon } from "@/components/icons/vertical-dots";
 import {
   Avatar,
@@ -11,18 +10,25 @@ import {
   DropdownTrigger,
 } from "@nextui-org/react";
 import { Billboard } from "@prisma/client";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export type ColumnsType = {
   key: keyof Omit<Billboard, "id"> | "actions";
   label: string;
 };
 
+type RenderCellProps = {
+  billboard: Billboard;
+  columnKey: keyof Billboard | "actions";
+  onOpenModal: (billboard: Billboard) => void;
+  onOpenDeleteModal: (billboard: Billboard) => void;
+};
+
 export const columns: ColumnsType[] = [
-  {
-    key: "image",
-    label: "Image",
-  },
+  // {
+  //   key: "image",
+  //   label: "Image",
+  // },
   {
     key: "title",
     label: "Title",
@@ -33,30 +39,26 @@ export const columns: ColumnsType[] = [
   },
 ];
 
-type RenderCellProps = {
-  billboard: Billboard;
-  columnKey: React.Key;
-  onOpenModal: (data: Billboard) => void;
-};
-
 export const RenderCell = ({
   billboard,
   columnKey,
   onOpenModal,
+  onOpenDeleteModal,
 }: RenderCellProps) => {
   const cellValue = billboard[columnKey as keyof Billboard];
+  const router = useRouter();
 
   switch (columnKey) {
-    case "image":
-      return (
-        <Avatar
-          src={billboard.image}
-          fallback
-          radius="md"
-          isBordered
-          isFocusable={false}
-        />
-      );
+    // case "image":
+    //   return (
+    //     <Avatar
+    //       src={billboard.image}
+    //       fallback
+    //       radius="md"
+    //       isBordered
+    //       isFocusable={false}
+    //     />
+    //   );
     case "title":
       return <div>{cellValue}</div>;
     case "actions":
@@ -73,11 +75,20 @@ export const RenderCell = ({
                 <DropdownItem onClick={() => onOpenModal(billboard)}>
                   <span>View</span>
                 </DropdownItem>
-                <DropdownItem>
-                  <span>edit</span>
+                <DropdownItem
+                  onClick={() =>
+                    router.push(`/admin/billboards/${billboard.id}`)
+                  }
+                >
+                  <span>Edit</span>
                 </DropdownItem>
-                <DropdownItem color="danger">
-                  <span>delete</span>
+                <DropdownItem
+                  color="danger"
+                  onClick={() => {
+                    onOpenDeleteModal(billboard);
+                  }}
+                >
+                  <span>Delete</span>
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>

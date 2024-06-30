@@ -9,17 +9,21 @@ import {
 } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 
-type ViewModalProps = {
-  children: React.ReactNode;
+type AlertModalProps = {
   title: string;
   onClose: () => void;
+  onDelete: (id: string) => Promise<void>;
+  loading: boolean;
+  id?: string;
 };
 
-export default function ViewModal({
-  children,
+export default function AlertModal({
   title,
   onClose,
-}: ViewModalProps) {
+  onDelete,
+  loading,
+  id,
+}: AlertModalProps) {
   const { isOpen } = useDisclosure({ defaultOpen: true });
   const [isMounted, setIsMounted] = useState(false);
 
@@ -44,10 +48,23 @@ export default function ViewModal({
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
-              <ModalBody>{children}</ModalBody>
+              <ModalBody>Are you sure you want to delete this item?</ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
-                  Done
+                  Close
+                </Button>
+                <Button
+                  color="danger"
+                  variant="solid"
+                  isLoading={loading}
+                  onClick={async () => {
+                    if (id) {
+                      await onDelete(id);
+                    }
+                    onClose();
+                  }}
+                >
+                  Confirm
                 </Button>
               </ModalFooter>
             </>

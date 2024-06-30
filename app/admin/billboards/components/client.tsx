@@ -6,10 +6,13 @@ import PLusIcon from "@/components/icons/plus";
 import { Button } from "@nextui-org/react";
 import { Billboard } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { RenderCell, columns } from "./columns";
-import ViewModal from "@/components/admin/view-modal";
+import { columns, RenderCell } from "./columns";
+import { toast } from "sonner";
 import { useState } from "react";
+import axios from "axios";
+import ViewModal from "@/components/admin/view-modal";
 import ModalContent from "./modal-content";
+import AlertModal from "@/components/admin/alert-modal";
 
 type BillboardClientProps = {
   billboards: Billboard[] | null;
@@ -19,16 +22,47 @@ const BillboardClient = ({ billboards }: BillboardClientProps) => {
   const router = useRouter();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalData, setModalData] = useState<Billboard | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const handleOpenModal = (data: Billboard) => {
-    setModalData(data);
+  const [data, setData] = useState<Billboard | null>(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const handleOpenModal = (billboard: Billboard) => {
     setIsModalOpen(true);
+    setData(billboard);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setModalData(null);
+    setData(null);
+  };
+
+  const handleOpenDeleteModal = (billboard: Billboard) => {
+    setIsDeleteModalOpen(true);
+    setData(billboard);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setData(null);
+  };
+
+  const onDelete = async (id: string) => {
+    try {
+      setLoading(true);
+      await axios.delete(`/api/billboards/${id}`);
+      router.refresh();
+      toast.info("Billboard deleted successfully");
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.warning(error.response.data);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,24 +80,38 @@ const BillboardClient = ({ billboards }: BillboardClientProps) => {
           Add new
         </Button>
       </div>
+
       <div className="my-2 md:mx-5">
         {billboards && (
           <DataTable<Billboard>
+            searchKey="title"
             data={billboards}
             columns={columns}
-            renderCell={(billboard, columnKey) => (
-              <RenderCell
-                billboard={billboard}
-                columnKey={columnKey}
-                onOpenModal={handleOpenModal}
-              />
-            )}
+            renderCell={(item, columnKey) =>
+              RenderCell({
+                billboard: item,
+                columnKey,
+                onOpenModal: handleOpenModal,
+                onOpenDeleteModal: handleOpenDeleteModal,
+              })
+            }
           />
         )}
       </div>
-      {isModalOpen && modalData && (
-        <ViewModal title="Billboard" onClose={handleCloseModal}>
-          <ModalContent data={modalData} />
+
+      {isDeleteModalOpen && (
+        <AlertModal
+          title={"Delete Billboard"}
+          onClose={handleCloseDeleteModal}
+          onDelete={onDelete}
+          loading={loading}
+          id={data?.id}
+        />
+      )}
+
+      {isModalOpen && (
+        <ViewModal title={"Billboard"} onClose={handleCloseModal}>
+          <ModalContent data={data} />
         </ViewModal>
       )}
     </div>

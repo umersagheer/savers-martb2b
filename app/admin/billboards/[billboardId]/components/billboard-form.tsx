@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import BackArrowIcon from "@/components/icons/back";
 import { Heading } from "@/components/admin/heading";
 import { DeleteIcon } from "@/components/icons/delete";
-import ViewModal from "@/components/admin/view-modal";
+import AlertModal from "@/components/admin/alert-modal";
 
 const formSchema = z.object({
   image: z.string().min(1, { message: "Image required" }),
@@ -37,6 +37,9 @@ type BillboardFormProps = {
 const BillboardForm = ({ initialData }: BillboardFormProps) => {
   const [progress, setProgress] = useState<number>();
   const [loading, setLoading] = useState(false);
+  const [deletionLoading, setDeletionLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const { onOpen } = useDisclosure();
   const params = useParams();
   const router = useRouter();
@@ -69,10 +72,17 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
           setProgress(progress);
         },
       });
-      console.log(res);
       const imageUrl = res.url;
       field.onChange(imageUrl);
     }
+  };
+
+  const handleOpenDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -96,8 +106,36 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
       setLoading(false);
     }
   };
+
+  const onDelete = async (id: string) => {
+    try {
+      setDeletionLoading(true);
+      await axios.delete(`/api/billboards/${id}`);
+      router.replace(`/admin/billboards`);
+      router.refresh();
+      toast.info("Billboard deleted successfully");
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.warning(error.response.data);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    } finally {
+      setDeletionLoading(false);
+    }
+  };
+
   return (
     <div>
+      {isDeleteModalOpen && (
+        <AlertModal
+          title={"Delete Billboard"}
+          onClose={handleCloseDeleteModal}
+          onDelete={onDelete}
+          loading={deletionLoading}
+          id={params.billboardId as string}
+        />
+      )}
       <div className="flex items-center justify-between">
         <Heading description="" title={title} />
         <div className="flex items-center justify-center gap-2">
@@ -118,7 +156,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
             <Tooltip content="Delete Billboard" size="sm">
               <Button
                 isIconOnly
-                onClick={() => {}}
+                onClick={() => handleOpenDeleteModal()}
                 color="danger"
                 variant="solid"
                 isDisabled={loading}
@@ -178,7 +216,12 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
             />
           )}
         />
-        <Button color="primary" type="submit" isLoading={loading}>
+        <Button
+          color="primary"
+          type="submit"
+          isLoading={loading}
+          disabled={(progress && progress < 100) || undefined}
+        >
           {action}
         </Button>
       </form>

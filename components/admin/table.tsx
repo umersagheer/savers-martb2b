@@ -8,8 +8,10 @@ import {
   TableRow,
   TableCell,
   Pagination,
+  Input,
 } from "@nextui-org/react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { SearchIcon } from "../icons/search";
 
 interface Column<TData> {
   key: keyof Omit<TData, "id"> | "actions";
@@ -20,15 +22,33 @@ interface DataTableProps<TData> {
   columns: Column<TData>[];
   data: TData[];
   renderCell: (item: TData, columnKey: Column<TData>["key"]) => React.ReactNode;
-  // searchKey: string;
+  searchKey: keyof TData;
 }
 export default function DataTable<TData>({
   columns,
   data,
   renderCell,
+  searchKey,
 }: DataTableProps<TData>) {
   const [page, setPage] = useState<number>(1);
+  const [filterValue, setFilterValue] = useState("");
   const rowsPerPage = 5;
+
+  const hasSearchFilter = Boolean(filterValue);
+
+  const filteredItems = useMemo(() => {
+    let filteredData = [...data];
+
+    if (hasSearchFilter) {
+      filteredData = filteredData.filter((data) =>
+        String(data[searchKey])
+          .toLowerCase()
+          .includes(filterValue.toLowerCase())
+      );
+    }
+
+    return filteredData;
+  }, [data, filterValue, searchKey]);
 
   const pages = Math.ceil(data.length / rowsPerPage);
 
@@ -36,12 +56,39 @@ export default function DataTable<TData>({
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return data.slice(start, end);
-  }, [page, data]);
+    return filteredItems.slice(start, end);
+  }, [page, filteredItems, rowsPerPage]);
+
+  const onSearchChange = useCallback((value?: string) => {
+    if (value) {
+      setFilterValue(value);
+      setPage(1);
+    } else {
+      setFilterValue("");
+    }
+  }, []);
+
+  const onClear = useCallback(() => {
+    setFilterValue("");
+    setPage(1);
+  }, []);
+
   return (
     <>
       <Table
         aria-label="Example table with dynamic content"
+        topContentPlacement="outside"
+        topContent={
+          <Input
+            isClearable
+            className="w-full sm:max-w-[44%]"
+            placeholder={`Search by ${String(searchKey)}...`}
+            startContent={<SearchIcon />}
+            value={filterValue}
+            onClear={() => onClear()}
+            onValueChange={onSearchChange}
+          />
+        }
         bottomContentPlacement="outside"
         bottomContent={
           <div className="flex w-full justify-center">
