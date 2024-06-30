@@ -26,12 +26,7 @@ const AdminNavbar = () => {
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   return (
-    <Navbar
-      isBordered
-      shouldHideOnScroll
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-    >
+    <Navbar isBordered isMenuOpen={isMenuOpen} onMenuOpenChange={setIsMenuOpen}>
       <NavbarContent>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}

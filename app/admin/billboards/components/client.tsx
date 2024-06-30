@@ -1,15 +1,15 @@
 "use client";
+import { Button } from "@nextui-org/react";
+import { Billboard } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useState } from "react";
+import axios from "axios";
 
 import { Heading } from "@/components/admin/heading";
 import DataTable from "@/components/admin/table";
 import PLusIcon from "@/components/icons/plus";
-import { Button } from "@nextui-org/react";
-import { Billboard } from "@prisma/client";
-import { useRouter } from "next/navigation";
 import { columns, RenderCell } from "./columns";
-import { toast } from "sonner";
-import { useState } from "react";
-import axios from "axios";
 import ViewModal from "@/components/admin/view-modal";
 import ModalContent from "./modal-content";
 import AlertModal from "@/components/admin/alert-modal";

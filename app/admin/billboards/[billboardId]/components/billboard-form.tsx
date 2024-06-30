@@ -1,25 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Input,
-  Button,
-  Chip,
-  Progress,
-  Tooltip,
-  useDisclosure,
-} from "@nextui-org/react";
+import { Input, Button, Chip, Progress, Tooltip } from "@nextui-org/react";
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+import { useParams, useRouter } from "next/navigation";
+import axios from "axios";
+import { toast } from "sonner";
 
 import { CameraIcon } from "@/components/icons/camera";
 import { useEdgeStore } from "@/libs/edgestore";
 import { SingleImageDropzone } from "@/components/admin/single-image-dropzone";
 import { Billboard } from "@prisma/client";
-import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
-import { toast } from "sonner";
 import BackArrowIcon from "@/components/icons/back";
 import { Heading } from "@/components/admin/heading";
 import { DeleteIcon } from "@/components/icons/delete";
@@ -39,8 +32,10 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
   const [loading, setLoading] = useState(false);
   const [deletionLoading, setDeletionLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isImageUploaded, setIsImageUploaded] = useState<boolean>(
+    !!initialData?.image
+  );
 
-  const { onOpen } = useDisclosure();
   const params = useParams();
   const router = useRouter();
 
@@ -74,6 +69,7 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
       });
       const imageUrl = res.url;
       field.onChange(imageUrl);
+      setIsImageUploaded(true);
     }
   };
 
@@ -139,18 +135,28 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
       <div className="flex items-center justify-between">
         <Heading description="" title={title} />
         <div className="flex items-center justify-center gap-2">
-          <Tooltip content="Go Back" size="sm">
-            <Button
-              isIconOnly
-              color="secondary"
-              variant="flat"
-              onClick={() => {
-                router.back();
-              }}
-              isDisabled={loading}
-            >
-              <BackArrowIcon />
-            </Button>
+          <Tooltip
+            content={
+              isImageUploaded && !initialData
+                ? "Delete the image first"
+                : "Back"
+            }
+            color={isImageUploaded && !initialData ? "danger" : "secondary"}
+            size="sm"
+          >
+            <div>
+              <Button
+                isIconOnly
+                color="secondary"
+                variant="flat"
+                onClick={() => {
+                  router.back();
+                }}
+                isDisabled={loading || isImageUploaded}
+              >
+                <BackArrowIcon />
+              </Button>
+            </div>
           </Tooltip>
           {initialData && (
             <Tooltip content="Delete Billboard" size="sm">
@@ -160,7 +166,6 @@ const BillboardForm = ({ initialData }: BillboardFormProps) => {
                 color="danger"
                 variant="solid"
                 isDisabled={loading}
-                onPress={onOpen}
               >
                 <DeleteIcon width={20} height={20} />
               </Button>

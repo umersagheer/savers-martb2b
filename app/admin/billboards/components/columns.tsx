@@ -1,8 +1,6 @@
 "use client";
 
-import { VerticalDotsIcon } from "@/components/icons/vertical-dots";
 import {
-  Avatar,
   Button,
   Dropdown,
   DropdownItem,
@@ -11,6 +9,8 @@ import {
 } from "@nextui-org/react";
 import { Billboard } from "@prisma/client";
 import { useRouter } from "next/navigation";
+
+import { VerticalDotsIcon } from "@/components/icons/vertical-dots";
 
 export type ColumnsType = {
   key: keyof Omit<Billboard, "id"> | "actions";

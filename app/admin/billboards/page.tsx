@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+
 import BillboardClient from "./components/client";
 import prisma from "@/libs/prismadb";
 import Loading from "../loading";

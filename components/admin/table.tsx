@@ -32,7 +32,7 @@ export default function DataTable<TData>({
 }: DataTableProps<TData>) {
   const [page, setPage] = useState<number>(1);
   const [filterValue, setFilterValue] = useState("");
-  const rowsPerPage = 5;
+  const rowsPerPage = 10;
 
   const hasSearchFilter = Boolean(filterValue);
 
@@ -76,7 +76,8 @@ export default function DataTable<TData>({
   return (
     <>
       <Table
-        aria-label="Example table with dynamic content"
+        aria-label="Table to display data"
+        isStriped
         topContentPlacement="outside"
         topContent={
           <Input
